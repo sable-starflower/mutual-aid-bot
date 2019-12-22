@@ -29,20 +29,11 @@ while true do
 		# Check all the reasons we wouldn't want to boost the post
 		
 		# if we already boosted it
-		if status.reblogged? then
-			next
-		end
-
+		next if status.reblogged?
 		# if the poster is a bot
-		if status.account.bot? then
-			next
-		end
-
+		next if status.account.bot?
 		# if the poster's profile contains the string "nobot"
-		if /nobot/ =~ status.account.note.downcase then
-			next
-		end
-
+		next if /nobot/ =~ status.account.note.downcase
 		# if any of the hashtags in the post are in the list of blocked hashtags
 		status.tags.each do |tag|
 			blocktags.each do |blocktag|

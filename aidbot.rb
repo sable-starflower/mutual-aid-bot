@@ -9,9 +9,19 @@ statuses = client.public_timeline
 since_id = statuses.first.id
 
 matchtags = ["transcrowdfund", "emergencycrowdfund", "disabilitycrowdfund", "showupforwishes"]
+maybetags = ["mutualaid"]
 blocktags = ["nobot"]
-matchregs = []
-#matchregs = [/<a[^>]*href="https?:\/\/(www\.)?gofundme.com[^"]*"/]
+matchregs = [
+	/<a[^>]*href="https?:\/\/(www\.)?gofundme.com[^"]*"/,
+	/<a[^>]*href="https?:\/\/(www\.)?cash.me[^"]*"/,
+	/<a[^>]*href="https?:\/\/(www\.)?paypal.me[^"]*"/,
+	/<a[^>]*href="https?:\/\/(www\.)?paypal.com[^"]*"/,
+	/<a[^>]*href="https?:\/\/(www\.)?ko-fi.com[^"]*"/,
+	/<a[^>]*href="https?:\/\/(www\.)?patreon.com[^"]*"/,
+	/<a[^>]*href="https?:\/\/(www\.)?venmo.com[^"]*"/,
+	/<a[^>]*href="https?:\/\/(www\.)?liberapay.com[^"]*"/,
+	/<a[^>]*href="https?:\/\/(www\.)?facebook.com\/donate[^"]*"/,
+]
 
 while true do
 	statuses.each do |status|
@@ -45,17 +55,28 @@ while true do
 		should_boost = false
 
 		# if any of the url regexes match
-		matchregs.each do |reg|
-			if reg =~ status.content then
-				should_boost = true
-			end
-		end
+		#matchregs.each do |reg|
+		#	if reg =~ status.content.downcase then
+		#		should_boost = true
+		#	end
+		#end
 
 		# or if any of the hashtags match
 		status.tags.each do |tag|
+			# match tags always match
 			matchtags.each do |matchtag|
 				if tag.name.downcase == matchtag then
 					should_boost = true
+				end
+			end
+			# maybe tags only match if the content also matches one of the regexes
+			maybetags.each do |maybetag|
+				if tag.name.downcase == maybetag then
+					matchregs.each do |reg|
+						if reg =~ status.content.downcase then
+							should_boost = true
+						end
+					end
 				end
 			end
 		end

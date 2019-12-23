@@ -23,7 +23,16 @@ matchregs = [
 	/<a[^>]*href="https?:\/\/(www\.)?facebook.com\/donate[^"]*"/,
 ]
 
+recent_boosts = {}
+
 while true do
+
+	delete_list = []
+	recent_boosts.delete_if do |account, last_boosted|
+		puts "Account #{account} left the 24 hour window so we can reboost them now."
+		last_boosted < (Time.now.to_i - 86400)
+	end
+
 	statuses.each do |status|
 
 		# Check all the reasons we wouldn't want to boost the post
@@ -34,6 +43,8 @@ while true do
 		next if status.account.bot?
 		# if the poster's profile contains the string "nobot"
 		next if /nobot/ =~ status.account.note.downcase
+		# skip if we recently boosted a post from this account
+		next if recent_boosts[status.account.id]
 		# if any of the hashtags in the post are in the list of blocked hashtags
 		status.tags.each do |tag|
 			blocktags.each do |blocktag|
@@ -76,13 +87,15 @@ while true do
 		if should_boost then
 			puts "==== boosting ===="
 			puts status.content
+			recent_boosts[status.account.id] = Time.now.to_i
 			client.reblog status.id
 		end
 	end
+
 	statuses = client.public_timeline(since_id: since_id)
+
 	if statuses.size == 0 then
-		puts "no new posts"
-		sleep 10
+		sleep 3600
 	else
 		since_id = statuses.first.id
 	end
